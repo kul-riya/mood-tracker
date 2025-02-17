@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+.style-script-regular {
+    font-family: "Style Script", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
