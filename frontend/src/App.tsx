@@ -1,16 +1,26 @@
 import "./App.css";
-import { useState } from "react";
+import { Key, useEffect, useState } from "react";
+import LoggedMood from "./components/loggedMood";
 
 function App() {
   const [mood, setMood] = useState("");
+  const [log, setLog] = useState([]);
+
+  useEffect(() => {
+    fetchLog();
+  }, []);
+
+  const fetchLog = async () => {
+    const result = await fetch("http://localhost:5000/", {
+      method: "GET",
+    });
+    const data = await result.json();
+    setLog(data);
+  };
 
   const onSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    console.log("heree i am");
-
-    const moodValue = mood;
-
-    console.log(moodValue);
+    console.log(mood);
 
     const result = await fetch("http://localhost:5000/post-mood", {
       method: "POST",
@@ -21,6 +31,7 @@ function App() {
     });
 
     console.log(await result.json());
+    fetchLog();
   };
   return (
     <>
@@ -38,12 +49,29 @@ function App() {
                 id="mood"
                 onChange={(e) => setMood(e.target.value)}
               >
+                <option value="empty"></option>
                 <option value="happy">Happy!</option>
                 <option value="sad">Sad :</option>
               </select>
               <button type="submit">Submit</button>
             </form>
           </div>
+        </div>
+        <div className="flex justify-center">
+          <ul className="mx-2 sm:mx-3 w-[1000px]">
+            {log.map(
+              (entry: { mood: string; timestamp: string }, index: Key) => (
+                <li key={index}>
+                  <LoggedMood
+                    mood={entry.mood}
+                    timestamp={entry.timestamp}
+                    onDelete={function (): void {}}
+                    onUpdate={function (): void {}}
+                  ></LoggedMood>
+                </li>
+              )
+            )}
+          </ul>
         </div>
       </main>
     </>
