@@ -1,24 +1,7 @@
 from flask import Flask, jsonify, request, redirect
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from sqlalchemy.orm import Mapped, mapped_column
-from datetime import datetime
+from config import app, db
+from models import Mood
 
-app = Flask(__name__)
-CORS(app)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-
-db = SQLAlchemy(app)
-
-class Mood(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    timestamp: Mapped[datetime] = mapped_column(default=datetime.now)
-    mood: Mapped[str] = mapped_column()
-    notes: Mapped[str] = mapped_column(default="")
-
-    def to_dict(self):
-        return {"id": self.id, "mood": self.mood, "timestamp": self.timestamp.isoformat(), "notes": self.notes}
 
 with app.app_context():
     db.create_all()
@@ -41,10 +24,21 @@ def post_mood():
         db.session.add(fetched_mood)
         db.session.commit()
     except:
-        return "Couldn't add mood"
+        return jsonify({"message": "Couldn't add mood"}), 404
     
     return {}
 
+@app.route("/delete/<int:id>", methods=["DELETE"])
+def delete_mood(id):
+    record = Mood.query.get_or_404(id)
+
+    if not record:
+        return jsonify({"message": "User not found"}), 404
+    
+    db.session.delete(record)
+    db.session.commit()
+
+    return jsonify({"message": "User deleted successfully"}), 200
 
 
     

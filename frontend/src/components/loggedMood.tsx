@@ -1,7 +1,7 @@
 interface Props {
   mood: string;
   timestamp: string;
-  onDelete: () => void;
+  onDelete: () => Promise<void>;
   onUpdate: () => void;
 }
 

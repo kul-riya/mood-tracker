@@ -15,6 +15,8 @@ function App() {
       method: "GET",
     });
     const data = await result.json();
+    console.log(data);
+
     setLog(data);
   };
 
@@ -33,6 +35,20 @@ function App() {
     console.log(await result.json());
     fetchLog();
   };
+
+  const onDelete = async (id: Number) => {
+    const result = await fetch(`http://localhost:5000/delete/${id}`, {
+      method: "DELETE",
+    });
+
+    const data = await result.json();
+    if (result.status === 200) {
+      fetchLog();
+    } else {
+      console.log(data["message"]);
+    }
+  };
+
   return (
     <>
       <header className="sticky w-full top-0 mx-auto flex items-center p-2 sm:p-4 bg-amber-200">
@@ -60,12 +76,15 @@ function App() {
         <div className="flex justify-center">
           <ul className="mx-2 sm:mx-3 w-[1000px]">
             {log.map(
-              (entry: { mood: string; timestamp: string }, index: Key) => (
+              (
+                entry: { id: Number; mood: string; timestamp: string },
+                index: Key
+              ) => (
                 <li key={index}>
                   <LoggedMood
                     mood={entry.mood}
                     timestamp={entry.timestamp}
-                    onDelete={function (): void {}}
+                    onDelete={() => onDelete(entry.id)}
                     onUpdate={function (): void {}}
                   ></LoggedMood>
                 </li>
