@@ -44,17 +44,29 @@ def delete_mood(id):
 
     return jsonify({"message": "Mood deleted successfully"}), 200
 
-@app.route("/get-preferences/<string:mood>", methods=["GET", "POST"])
-def get_preferences(mood):
+@app.route("/preferences/<string:mood>", methods=["GET", "POST"])
+def get_preferences(mood: str):
+    print("im here")
 
     if request.method=="POST":
         data = request.get_json()
 
+        print(data)
+        for preference in data["selectedPreferences"]:
+            db.session.add(Preference(mood=mood, activity=preference))
+
+        db.session.commit()
+        return jsonify({"message": "Preferences added successully"}), 200
+
     else:
         history = Preference.query.filter_by(mood=mood).all()
-        response = client.models.generate_content(model="gemini-2.0-flash", 
-                                                contents=["Suggest 3 things to do based 1. on the mood I am currently in and 2. my preferred things to do in that mood. Suggest 2 random things based on the mood I am currently in. Respond with suggestions as a raw json string without any trailing or leading text (in the format: {'suggestions': [{'activity': 'activity1', 'description': 'description for activity1'}]}). Thanks! ", mood, [h.activity for h in history]])
-        # print(response.text)
+        prompt = f"Suggest 3 things to do based on 1. the mood '{mood}' and 2. my preferred activities { [h.activity for h in history] }. Suggest 2 random things based on the mood. Respond with JSON format only: {{'suggestions': [{{'activity': 'activity1', 'description': 'description for activity1'}}]}}."
+
+        response = client.models.generate_content(
+            model="gemini-2.0-flash", 
+            contents=prompt  # Pass a string instead of a list
+        )
+        print(response.text)
         return jsonify(parse(response.text))
 
 

@@ -1,10 +1,10 @@
 interface Props {
   activity: string;
   description: string;
-  selected: boolean;
+  onSelect: (activity: string, isSelected: boolean) => void;
 }
 
-const PreferredActivity = ({ activity, description, selected }: Props) => {
+const PreferredActivity = ({ activity, description, onSelect }: Props) => {
   return (
     <div className="flex justify-between items-end">
       <div>
@@ -16,9 +16,7 @@ const PreferredActivity = ({ activity, description, selected }: Props) => {
         type="checkbox"
         name="select"
         id="select"
-        onChange={() => {
-          selected = !selected;
-        }}
+        onChange={(e) => onSelect(activity, e.target.checked)}
       />
     </div>
   );

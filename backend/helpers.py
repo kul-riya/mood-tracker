@@ -16,4 +16,9 @@ def parse(text:str) -> dict:
     text = text.strip("`").lstrip("json").strip()
 
     # print(repr(text))
-    return json.loads(text)
+
+    try:
+        return json.loads(text)  # Convert to dictionary
+    except json.JSONDecodeError as e:
+        print("JSON Parsing Error:", e)
+        return {"error": "Invalid JSON format from Gemini API"}

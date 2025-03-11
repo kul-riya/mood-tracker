@@ -7,6 +7,7 @@ function App() {
   const [mood, setMood] = useState("");
   const [log, setLog] = useState([]);
   const [preferences, setPreferences] = useState([]);
+  const [likedPreferences, setLikedPreferences] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLog();
@@ -49,15 +50,55 @@ function App() {
   };
 
   const onGetPreferences = async () => {
-    const result = await fetch(
-      `http://localhost:5000/get-preferences/${mood}`,
-      {
+    try {
+      const result = await fetch(`http://localhost:5000/preferences/${mood}`, {
         method: "GET",
+      });
+
+      if (!result.ok) {
+        throw new Error(`HTTP error! Status: ${result.status}`);
       }
+
+      const data = await result.json();
+      console.log("Received data:", data);
+
+      if (data.error) {
+        console.error("Error from backend:", data.error);
+      } else {
+        setPreferences(data["suggestions"]);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  // TODO i dont like how this looks
+  const handleSelect = (activity: string, isSelected: boolean) => {
+    setLikedPreferences((prev) =>
+      isSelected ? [...prev, activity] : prev.filter((a) => a !== activity)
     );
-    const data = await result.json();
-    console.log(data);
-    setPreferences(data["suggestions"]);
+  };
+
+  const onAddPreferences = async () => {
+    try {
+      console.log(likedPreferences);
+
+      const result = await fetch(`http://localhost:5000/preferences/${mood}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selectedPreferences: likedPreferences,
+        }),
+      });
+      const data = await result.json();
+      console.log(data["message"]);
+
+      if (!result.ok) {
+        throw new Error(`HTTP error: Status code: ${result.status}`);
+      }
+    } catch (error) {
+      console.log("Error sending datta");
+    }
   };
 
   return (
@@ -79,7 +120,7 @@ function App() {
                   >
                     <option value="empty"></option>
                     <option value="happy">Happy!</option>
-                    <option value="sad">Sad :</option>
+                    <option value="sad">Sad T_T</option>
                   </select>
                   <button type="submit">Submit</button>
                 </form>
@@ -124,13 +165,19 @@ function App() {
                     <PreferredActivity
                       activity={entry.activity}
                       description={entry.description}
-                      selected={false}
+                      onSelect={handleSelect}
                     ></PreferredActivity>
                   </li>
                 );
               }
             )}
           </ul>
+          <button
+            className="py-3 px-2 bg-blue-400 rounded-full"
+            onClick={onAddPreferences}
+          >
+            Add Preferences
+          </button>
         </div>
       </main>
     </>
